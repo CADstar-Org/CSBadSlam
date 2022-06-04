@@ -49,7 +49,7 @@ set PATH=%QTROOT%\Tools\QtCreator\bin\jom;%MSKITS%\bin\x64;%MSBUILDDIR%;%QTOPENS
 if not exist build mkdir build
 %DELETE% build\*.*
 cd build
-cmake -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=d:/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
+cmake -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
 rem %MSBUILD% libvis.sln /nologo /p:Configuration="Release" /p:Platform="x64" /t:Build
 %MSBUILD% libvis.sln /nologo /p:Configuration="RelWithDebInfo" /p:Platform="x64" /t:Build
 cd ..
