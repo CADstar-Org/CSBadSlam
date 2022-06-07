@@ -65,8 +65,12 @@ endif()
 # Cross-platform threading. See:
 # https://cmake.org/cmake/help/latest/module/FindThreads.html
 find_package(Threads REQUIRED)
-find_package(Opengv REQUIRED)
 find_package(OpenGL REQUIRED)
+
+find_package(OpenGV REQUIRED)
+if (opengv_FOUND)
+  message("======== opengv_FOUND============") 
+endif (opengv_FOUND)
 
 # Eigen (external)
 find_package(Eigen3 REQUIRED)
@@ -395,6 +399,7 @@ target_include_directories(libvis
 target_link_libraries(libvis
   PUBLIC
     loguru
+	${OpenGV_LIBRARIES}
     ${Qt5Widgets_LIBRARIES}
     ${Qt5Opengl_LIBRARIES}
     ${Qt5Core_LIBRARIES}
@@ -503,6 +508,7 @@ target_link_libraries(libvis_test PRIVATE
   gtest
   Threads::Threads
   libvis
+  ${OpenGV_LIBRARIES}
   cublas  # TODO: currently required because of lm_optimizer.h. That should not be necessary.
 )
 target_include_directories(libvis_test PRIVATE
