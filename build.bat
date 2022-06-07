@@ -49,7 +49,8 @@ set PATH=%QTROOT%\Tools\QtCreator\bin\jom;%MSKITS%\bin\x64;%MSBUILDDIR%;%QTOPENS
 if not exist build mkdir build
 %DELETE% build\*.*
 cd build
-cmake -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
+
+cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DCUDA_TOOLKIT_ROOT_DIR="C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6" -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build  -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
 %MSBUILD% libvis.sln /nologo /p:Configuration="Debug" /p:Platform="x64" /t:Build
 rem %MSBUILD% libvis.sln /nologo /p:Configuration="Release" /p:Platform="x64" /t:Build
 rem %MSBUILD% libvis.sln /nologo /p:Configuration="RelWithDebInfo" /p:Platform="x64" /t:Build
