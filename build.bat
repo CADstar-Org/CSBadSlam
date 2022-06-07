@@ -50,7 +50,8 @@ if not exist build mkdir build
 %DELETE% build\*.*
 cd build
 cmake -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
+%MSBUILD% libvis.sln /nologo /p:Configuration="Debug" /p:Platform="x64" /t:Build
 rem %MSBUILD% libvis.sln /nologo /p:Configuration="Release" /p:Platform="x64" /t:Build
-%MSBUILD% libvis.sln /nologo /p:Configuration="RelWithDebInfo" /p:Platform="x64" /t:Build
+rem %MSBUILD% libvis.sln /nologo /p:Configuration="RelWithDebInfo" /p:Platform="x64" /t:Build
 cd ..
 
