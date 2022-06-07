@@ -64,13 +64,15 @@ endif()
 
 # Cross-platform threading. See:
 # https://cmake.org/cmake/help/latest/module/FindThreads.html
-find_package(Threads REQUIRED)
-find_package(OpenGL REQUIRED)
-
+message("======== find opengv") 
 find_package(OpenGV REQUIRED)
 if (opengv_FOUND)
   message("======== opengv_FOUND============") 
 endif (opengv_FOUND)
+
+find_package(Threads REQUIRED)
+find_package(OpenGL REQUIRED)
+
 
 # Eigen (external)
 find_package(Eigen3 REQUIRED)
