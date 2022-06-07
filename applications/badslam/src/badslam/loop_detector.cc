@@ -175,9 +175,9 @@ LoopDetector:: LoopDetector(
   
   // Optionally allocate memory for the expected number of images
   detector_->allocate(2500);
-  
+  #if 0 //IZI 
   extractor_.reset(new TExtractor(pattern_path));
-  
+  #endif
   if (parallel_loop_detection) {
     // Start a separate thread for loop detection.
     quit_requested_ = false;
@@ -739,7 +739,10 @@ bool LoopDetector::DetectLoop(
   vector<TDescriptor> descriptors;
   
   // Extract features
+  #if 0 // IZI
+  //std::vector<DVision::BRIEF::bitset,std::allocator<DVision::BRIEF::bitset>> &
   (*extractor_)(image, *keys, descriptors);
+  #endif
   
   // Amend the extracted features with their depth.
   // HACK: Storing the depth in the "response" field of cv::KeyPoint.
