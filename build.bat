@@ -54,3 +54,10 @@ rem %MSBUILD% libvis.sln /nologo /p:Configuration="Release" /p:Platform="x64" /t
 %MSBUILD% libvis.sln /nologo /p:Configuration="RelWithDebInfo" /p:Platform="x64" /t:Build
 cd ..
 
+rem mkdir build
+rem cd build
+rem cmake .. -G"Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=c:\prj\dlib_build_release
+rem cmake --build . --target install --config Release
+rem cmake .. -G"Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=c:\prj\dlib_build_debug
+rem cmake --build . --target install --config Debug
+
