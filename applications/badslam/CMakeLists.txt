@@ -2,8 +2,8 @@ if (CMAKE_CUDA_COMPILER)
   # Make CMake find the Find<Package>.cmake files in the cmake subdirectory.
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
   
-  set(DLib_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/DLib/lib/cmake/DLib")
-  set(opengv_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/opengv/lib/cmake/opengv-1.0")
+  #set(DLib_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/DLib/lib/cmake/DLib")
+  #set(opengv_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/opengv/lib/cmake/opengv-1.0")
   set(WITH_REALSENSE ON CACHE BOOL "Enable Realsense2 Support")
   set(WITH_K4A ON CACHE BOOL "Enable Kinect4Azure Support")
   # Dependencies
@@ -20,8 +20,8 @@ if (CMAKE_CUDA_COMPILER)
     find_package(X11 REQUIRED)
   endif()
 
-  add_subdirectory(third_party/DBoW2)
-  set_target_properties(DBoW2 Dependencies PROPERTIES FOLDER "badslam/third_party/DBoW2")
+  #add_subdirectory(third_party/DBoW2)
+  #set_target_properties(DBoW2 Dependencies PROPERTIES FOLDER "badslam/third_party/DBoW2")
   
   find_package(opengv REQUIRED)
   
@@ -104,12 +104,13 @@ if (CMAKE_CUDA_COMPILER)
   target_include_directories(badslam_baselib
     PRIVATE
       src
-      third_party/DBoW2/include/
+      new_third_party/DLib/include/
+      #third_party/DBoW2/include/
       ${SuiteSparse_INCLUDE_DIRS}
       ${GLEW_INCLUDE_DIR}
       ${DLib_INCLUDE_DIRS}
     PUBLIC
-      third_party
+      new_third_party
       ${OpenCV_INCLUDE_DIRS}
       ${Boost_INCLUDE_DIR}
   )
@@ -189,9 +190,11 @@ if (CMAKE_CUDA_COMPILER)
   )
   set_property(TARGET badslam PROPERTY FOLDER "badslam")
   target_include_directories(badslam PRIVATE
-    src
-    third_party
-    third_party/DBoW2/include/
+    src	
+	new_third_party
+	new_third_party/DLib/include/
+    #third_party
+    #third_party/DBoW2/include/
     ${realsense_INCLUDE_DIR}
     ${GLEW_INCLUDE_DIR}
   )
