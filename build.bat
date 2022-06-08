@@ -53,22 +53,12 @@ if not exist build mkdir build
 
 cd build
 
-rem "-DCUDA_TOOLKIT_ROOT_DIR=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6"
-rem cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DCMAKE_BUILD_TYPE=Debug -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
-rem cmake --build . --target install --config Debug
+cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DCMAKE_BUILD_TYPE=Debug -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
+cmake --build . --target install --config Debug
 
-cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DCMAKE_BUILD_TYPE=Release -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
-cmake --build . --target install --config Release
+rem cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DCMAKE_BUILD_TYPE=Release -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
+rem make --build . --target install --config Release
 
-rem %MSBUILD% libvis.sln /nologo /p:Configuration="Debug" /p:Platform="x64" /t:Build 
-rem %MSBUILD% libvis.sln /nologo /p:Configuration="Release" /p:Platform="x64" /t:Build -DCMAKE_BUILD_TYPE="RELEASE"
-rem %MSBUILD% libvis.sln /nologo /p:Configuration="RelWithDebInfo" /p:Platform="x64" /t:Build 
 cd ..
 
-rem mkdir build
-rem cd build
-rem cmake .. -G"Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=c:\prj\dlib_build_release
-rem cmake --build . --target install --config Release
-rem cmake .. -G"Visual Studio 14 2015 Win64" -DCMAKE_INSTALL_PREFIX=c:\prj\dlib_build_debug
-rem cmake --build . --target install --config Debug
 
