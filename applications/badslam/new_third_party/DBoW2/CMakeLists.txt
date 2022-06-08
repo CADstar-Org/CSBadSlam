@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(DBoW2)
 include(ExternalProject)
+# set(CMAKE_DEBUG_POSTFIX d)
 
 option(BUILD_DBoW2   "Build DBoW2"            ON)
 option(BUILD_Demo    "Build demo application" ON)
@@ -43,6 +44,16 @@ find_package(DLib QUIET
   PATHS ${DEPENDENCY_INSTALL_DIR})
 if(${DLib_FOUND})
   message("DLib library found, using it from the system")
+  message ("DLib_LIBS:" ${DLib_LIBS})
+  
+message ("--DCMAKE_BUILD_TYPE:" ${CMAKE_BUILD_TYPE})
+  if ( CMAKE_BUILD_TYPE  STREQUAL "Debug" ) #$<$<CONFIG:Debug>:d>
+   message ("--DebugDLib_LIBS:" ${DLib_LIBS})
+		set(DLib_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/../DLib/lib/DLibd.lib")
+  endif()
+   message ("---DLib_LIBS:" ${DLib_LIBS})
+   
+   
   include_directories(${DLib_INCLUDE_DIRS})
   add_custom_target(Dependencies)
 else(${DLib_FOUND})
