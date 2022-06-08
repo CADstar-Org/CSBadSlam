@@ -1,6 +1,6 @@
 
 set(DLIB_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../DLib")
-# message("DLib root dir: ${DLIB_ROOT_DIR}")
+message("DLib root dir: ${DLIB_ROOT_DIR}")
 
 FIND_LIBRARY(DLib_LIBRARY DLib
     PATHS "${DLIB_ROOT_DIR}/lib"

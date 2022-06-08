@@ -88,6 +88,7 @@ class RealSenseInputThread {
 
 #else
 
+#if 0 // IZI 
 // Dummy version of RealSenseInputThread which replaces the actual version in
 // case the program is compiled without librealsense2. Asserts if any of its
 // functions are called.
@@ -103,6 +104,14 @@ class RealSenseInputThread {
     LOG(FATAL) << "RealSense input requested, but the program was compiled without RealSense support.";
   }
 };
+#else
+class RealSenseInputThread {
+ public:
+   void Start(RGBDVideo<Vec3u8, u16>* rgbd_video, float* depth_scaling);
+  
+   void GetNextFrame();
+};
+#endif
 
 #endif
 
