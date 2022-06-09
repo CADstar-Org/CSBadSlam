@@ -88,7 +88,7 @@ class RealSenseInputThread {
 
 #else
 
-#if 0 // IZI 
+#if 1 // IZI 
 // Dummy version of RealSenseInputThread which replaces the actual version in
 // case the program is compiled without librealsense2. Asserts if any of its
 // functions are called.
