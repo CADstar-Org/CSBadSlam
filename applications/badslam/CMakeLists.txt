@@ -11,11 +11,8 @@ if (CMAKE_CUDA_COMPILER)
   set(DLib_LIBRARY_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib")
   set(DLib_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/include")
   set(DLib_INCLUDE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/include")
-  set(DLib_LIBS  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLib.lib")
-
-  if ( CMAKE_BUILD_TYPE  STREQUAL "Debug" ) #$<$<CONFIG:Debug>:d>
-	set(DLib_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLibd.lib")
-  endif()
+  #set(DLib_LIBS  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLib.lib")
+  set(DLib_LIBS $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLib.lib> $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLibd.lib>)
   message ("DLib_LIBS:" ${DLib_LIBS})
    
   set(DBoW2_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DBoW2/include")
@@ -34,12 +31,8 @@ if (CMAKE_CUDA_COMPILER)
   find_package(Opengv REQUIRED)
 
   if (OPENGV_FOUND)
-    if ( CMAKE_BUILD_TYPE  STREQUAL "Debug" ) #$<$<CONFIG:Debug>:d>
-	  set(DLib_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLibd.lib")
-    endif()
-
-	message( "OPENGV_LIBRARIES:: " ${OPENGV_LIBRARIES})
-	message( "OPENGV_INCLUDE_DIR:: " ${OPENGV_INCLUDE_DIR})
+	message( "OPENGV_LIBRARIES::     " ${OPENGV_LIBRARIES})
+	message( "OPENGV_INCLUDE_DIR::   " ${OPENGV_INCLUDE_DIR})
 	message( "OPENGV_LIBRARIES_DIR:: " ${OPENGV_LIBRARIES_DIR})
   endif()
   

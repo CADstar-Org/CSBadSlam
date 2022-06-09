@@ -55,18 +55,18 @@ cd build
 
 set COMPILE_DEBUG=1
 
+echo =================***************======================
+
 if %COMPILE_DEBUG% == 1 (
 	echo ================= compile DEBUG ======================
-	cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DCMAKE_BUILD_TYPE=Debug -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
+	cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
 	cmake --build . --target install --config Debug
-
 ) else (
 	echo ================= compile RELEASE ======================
-	cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DCMAKE_BUILD_TYPE=Release -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
+	cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
 	cmake --build . --target install --config Release
 )
 
-cd ..
 cd %MYPATH%
 
 
