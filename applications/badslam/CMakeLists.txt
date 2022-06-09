@@ -208,6 +208,7 @@ if (CMAKE_CUDA_COMPILER)
     ${GLEW_INCLUDE_DIR}
     ${DLIB_INCLUDE_DIR}
     ${DBOW2_INCLUDE_DIR}
+	new_third_party
   )
   target_link_libraries(badslam PRIVATE
     badslam_baselib
