@@ -7,23 +7,24 @@ if (CMAKE_CUDA_COMPILER)
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
   
   # https://github.com/dorian3d/DLib
-  set(DLib_DIR "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/cmake/DLib")
-  set(DLib_LIBRARY_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib")
-  set(DLib_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/include")
-  set(DLib_INCLUDE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/include")
+  #set(DLib_DIR "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/cmake/DLib")
+  #set(DLib_LIBRARY_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib")
+  #set(DLib_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/include")
+  #set(DLib_INCLUDE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/include")
   #set(DLib_LIBS  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLib.lib")
-  set(DLib_LIBS $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLib.lib> $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLibd.lib>)
-  message ("DLib_LIBS:" ${DLib_LIBS})
+  #set(DLib_LIBS $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLib.lib> $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DLib/lib/DLibd.lib>)
+  #message ("DLib_LIBS:" ${DLIB_LIBRARIES})
    
-  set(DBoW2_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DBoW2/include")
-  set(DBoW2_INCLUDE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DBoW2/include")
+  #set(DBoW2_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DBoW2/include")
+  #set(DBoW2_INCLUDE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/new_third_party/DBoW2/include")
 		  
   #set(opengv_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/opengv/lib/cmake/opengv-1.0")
   set(WITH_REALSENSE ON CACHE BOOL "Enable Realsense2 Support")
   set(WITH_K4A ON CACHE BOOL "Enable Kinect4Azure Support")
   # Dependencies 
   find_package(SuiteSparse REQUIRED)
-  #find_package(DLib REQUIRED)
+  find_package(DLib REQUIRED)
+  find_package(DBoW2 REQUIRED)
   find_package(Eigen3 REQUIRED)
   find_package(g2o REQUIRED)
   find_package(OpenGL REQUIRED)
@@ -35,8 +36,11 @@ if (CMAKE_CUDA_COMPILER)
 	message( "OPENGV_INCLUDE_DIR::   " ${OPENGV_INCLUDE_DIR})
 	message( "OPENGV_LIBRARIES_DIR:: " ${OPENGV_LIBRARIES_DIR})
   endif()
-  
-  #find_package(Dbow2 REQUIRED)
+  if (DBOW2_FOUND)
+	message( "DBOW2_LIBRARIES::     " ${DBOW2_LIBRARIES})
+	message( "DBOW2_INCLUDE_DIR::   " ${DBOW2_INCLUDE_DIR})
+	message( "DBOW2_LIBRARIES_DIR:: " ${DBOW2_LIBRARIES_DIR})
+  endif()
 
   # Cross-platform threading. See:
   # https://cmake.org/cmake/help/latest/module/FindThreads.html
@@ -46,8 +50,8 @@ if (CMAKE_CUDA_COMPILER)
     find_package(X11 REQUIRED)
   endif()
 
-  add_subdirectory(new_third_party/DBoW2)
-  set_target_properties(DBoW2 Dependencies PROPERTIES FOLDER "badslam/new_third_party/DBoW2")
+  #add_subdirectory(new_third_party/DBoW2)
+  #set_target_properties(DBoW2 Dependencies PROPERTIES FOLDER "badslam/new_third_party/DBoW2")
   
 
   # Optional, only required for live RealSense camera support
@@ -129,13 +133,13 @@ if (CMAKE_CUDA_COMPILER)
   target_include_directories(badslam_baselib
     PRIVATE
       src
-      new_third_party/DLib/include/
-      new_third_party/DBoW2/include/
-	  #${Dbow2_INCLUDE_DIRS}
-	  ${Opengv_INCLUDE_DIRS}
+      #new_third_party/DLib/include/
+      #new_third_party/DBoW2/include/
+	  ${DBOW2_INCLUDE_DIRS}
+	  ${OPENGV_INCLUDE_DIRS}
       ${SuiteSparse_INCLUDE_DIRS}
       ${GLEW_INCLUDE_DIR}
-      #${DLib_INCLUDE_DIRS}
+      ${DLIB_INCLUDE_DIRS}
     PUBLIC
       new_third_party
       ${OpenCV_INCLUDE_DIRS}
@@ -184,15 +188,15 @@ if (CMAKE_CUDA_COMPILER)
 
   target_link_libraries(badslam_baselib
     PRIVATE
-	  DBoW2
+	  #DBoW2
 	  #DLib
-	  #${DBoW2_LIBS}
       g2o::core
       g2o::types_slam3d
       g2o::solver_csparse
       g2o::csparse_extension
       g2o::stuff 
- 	  ${DLib_LIBS}
+	  ${DBOW2_LIBRARIES}
+ 	  ${DLIB_LIBRARIES}
 	  ${SuiteSparse_LIBRARIES}
       ${OpenCV_LIBS}
       ${realsense2_LIBRARY}
@@ -220,16 +224,17 @@ if (CMAKE_CUDA_COMPILER)
   set_property(TARGET badslam PROPERTY FOLDER "badslam")
   target_include_directories(badslam PRIVATE
     src	
-	new_third_party
-    new_third_party/DBoW2/include/
-    new_third_party/DLib/include/
+    #new_third_party/DBoW2/include/
+   # new_third_party/DLib/include/
     ${realsense_INCLUDE_DIR}
     ${GLEW_INCLUDE_DIR}
-    #${DLib_INCLUDE_DIR}
-    #${DBoW2_INCLUDE_DIR}
+    ${DLIB_INCLUDE_DIR}
+    ${DBOW2_INCLUDE_DIR}
+	new_third_party
   )
   target_link_libraries(badslam PRIVATE
     badslam_baselib
+	${DBOW2_LIBRARIES}
 	${OPENGV_LIBRARIES}
     ${OpenCV_LIBS}
     ${X11_LIBRARIES}
@@ -261,6 +266,7 @@ if (CMAKE_CUDA_COMPILER)
     badslam_baselib
     gtest
     Threads::Threads
+	${DBOW2_LIBRARIES}
     ${X11_LIBRARIES}
   )
   add_test(badslam_test

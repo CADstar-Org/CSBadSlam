@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.6...3.14)
 project(libvis LANGUAGES C CXX)
 
+if (CMAKE_BUILD_TYPE STREQUAL "")
+	# If not specified then default to Release
+	set (CMAKE_BUILD_TYPE Release)
+endif ()
 
 # Enable C++14 globally
 set(CMAKE_CXX_STANDARD 14)
@@ -61,14 +65,14 @@ if (CMAKE_CUDA_COMPILER)
 else()
   message(FATAL_ERROR "CMake did not find CUDA, which is required to build this program.")
 endif()
-
+	
 # Cross-platform threading. See:
 # https://cmake.org/cmake/help/latest/module/FindThreads.html
 message("======== find opengv") 
 find_package(OpenGV REQUIRED)
-if (opengv_FOUND)
-  message("======== opengv_FOUND============") 
-endif (opengv_FOUND)
+if (OPENGV_FOUND)
+  message("======== OPENGV_FOUND============") 
+endif (OPENGV_FOUND)
 
 find_package(Threads REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -401,7 +405,7 @@ target_include_directories(libvis
 target_link_libraries(libvis
   PUBLIC
     loguru
-	${OpenGV_LIBRARIES}
+	${OPENGV_LIBRARIES}
     ${Qt5Widgets_LIBRARIES}
     ${Qt5Opengl_LIBRARIES}
     ${Qt5Core_LIBRARIES}
@@ -510,7 +514,7 @@ target_link_libraries(libvis_test PRIVATE
   gtest
   Threads::Threads
   libvis
-  ${OpenGV_LIBRARIES}
+  ${OPENGV_LIBRARIES}
   cublas  # TODO: currently required because of lm_optimizer.h. That should not be necessary.
 )
 target_include_directories(libvis_test PRIVATE
