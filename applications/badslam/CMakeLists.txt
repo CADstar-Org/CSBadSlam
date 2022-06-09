@@ -122,6 +122,7 @@ if (CMAKE_CUDA_COMPILER)
       ${SuiteSparse_INCLUDE_DIRS}
       ${GLEW_INCLUDE_DIR}
       ${DLIB_INCLUDE_DIRS}
+	  new_third_party
     PUBLIC
       ${OpenCV_INCLUDE_DIRS}
       ${Boost_INCLUDE_DIR}
@@ -237,6 +238,7 @@ if (CMAKE_CUDA_COMPILER)
     ${gtest_SOURCE_DIR}
     ${GLEW_INCLUDE_DIRS}
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+	new_third_party
   )
   target_link_libraries(badslam_test PRIVATE
     badslam_baselib
