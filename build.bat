@@ -54,7 +54,7 @@ if not exist build mkdir build
 cd build
 
 
-set COMPILE_DEBUG=0
+set COMPILE_DEBUG=1
 
 if %COMPILE_DEBUG% == 1 (
 	echo ================= COMPILE BADSLAM DEBUG ======================
