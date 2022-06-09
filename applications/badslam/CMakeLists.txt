@@ -8,8 +8,8 @@ if (CMAKE_CUDA_COMPILER)
   
   # https://github.com/dorian3d/DLib
 
-  set(WITH_REALSENSE ON CACHE BOOL "Enable Realsense2 Support")
-  set(WITH_K4A ON CACHE BOOL "Enable Kinect4Azure Support")
+  set(WITH_REALSENSE OFF CACHE BOOL "Enable Realsense2 Support" FORCE)
+  set(WITH_K4A OFF CACHE BOOL "Enable Kinect4Azure Support" FORCE)
   # Dependencies 
   find_package(SuiteSparse REQUIRED)
   find_package(DLib REQUIRED)
