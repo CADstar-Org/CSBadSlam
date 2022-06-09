@@ -43,17 +43,8 @@ include_directories(${Boost_INCLUDE_DIR})
 find_package(DLib QUIET 
   PATHS ${DEPENDENCY_INSTALL_DIR})
 if(${DLib_FOUND})
-  message("DLib library found, using it from the system")
-  message ("DLib_LIBS:" ${DLib_LIBS})
-  
-message ("--DCMAKE_BUILD_TYPE:" ${CMAKE_BUILD_TYPE})
-  if ( CMAKE_BUILD_TYPE  STREQUAL "Debug" ) #$<$<CONFIG:Debug>:d>
-   message ("--DebugDLib_LIBS:" ${DLib_LIBS})
-		set(DLib_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/../DLib/lib/DLibd.lib")
-  endif()
-   message ("---DLib_LIBS:" ${DLib_LIBS})
-   
-   
+  set(DLib_LIBS $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/../DLib/lib/DLib.lib> $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/../DLib/lib/DLibd.lib>)
+  message("DLib library found, using it from the system: "  ${DLib_LIBS}")
   include_directories(${DLib_INCLUDE_DIRS})
   add_custom_target(Dependencies)
 else(${DLib_FOUND})
