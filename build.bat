@@ -53,16 +53,20 @@ if not exist build mkdir build
 
 cd build
 
-set COMPILE_DEBUG=1
 
-echo ================= COMPILE BADSLAM ======================
+set COMPILE_DEBUG=0
+
+if %COMPILE_DEBUG% == 1 (
+	echo ================= COMPILE BADSLAM DEBUG ======================
+) else (
+	echo ================= COMPILE BADSLAM RELEASE ======================
+)
+
 cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
 
 if %COMPILE_DEBUG% == 1 (
-	echo ================= compile DEBUG ======================
 	cmake --build . --target install --config Debug
 ) else (
-	echo ================= compile RELEASE ======================
 	cmake --build . --target install --config Release
 )
 
