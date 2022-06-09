@@ -53,7 +53,7 @@ if not exist build mkdir build
 
 cd build
 
-set COMPILE_DEBUG=1
+set COMPILE_DEBUG=0
 
 echo =================***************======================
 
