@@ -44,7 +44,7 @@ find_package(DLib QUIET
   PATHS ${DEPENDENCY_INSTALL_DIR})
 if(${DLib_FOUND})
   set(DLib_LIBS $<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/../DLib/lib/DLib.lib> $<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}/../DLib/lib/DLibd.lib>)
-  message("DLib library found, using it from the system: "  ${DLib_LIBS}")
+  message("DLib library found, using it from the system: "  ${DLib_LIBS})
   include_directories(${DLib_INCLUDE_DIRS})
   add_custom_target(Dependencies)
 else(${DLib_FOUND})
