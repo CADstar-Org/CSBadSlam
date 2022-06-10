@@ -47,18 +47,17 @@ set XCOPYDIR=xcopy /Y /D /Q /E /H /C /I
 set RMDIR=rmdir /Q /S 
 set PATH=%QTROOT%\Tools\QtCreator\bin\jom;%MSKITS%\bin\x64;%MSBUILDDIR%;%QTOPENSSL%;%PATH%
 
-
 if exist build %RMDIR% build
 if not exist build mkdir build
 
 cd build
 
+set COMPILE_DEBUG=0
 
-if "%1"=="" (
-  set COMPILE_DEBUG=0
-) else (
-  set COMPILE_DEBUG=1
-)
+echo "%1"
+if "%1"==""     set COMPILE_DEBUG=0
+if "%1" NEQ ""  set COMPILE_DEBUG=1
+if "%1" EQU "0" set COMPILE_DEBUG=0
 
 echo .
 echo .
