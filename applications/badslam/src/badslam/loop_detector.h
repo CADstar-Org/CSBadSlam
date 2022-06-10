@@ -118,7 +118,8 @@ public:
   virtual void operator()(
       const cv::Mat& im,
       vector<cv::KeyPoint>& keys,
-      vector<TDescriptor>& descriptors) const = 0;
+      //vector<TDescriptor>& descriptors) const = 0;
+	  vector<DVision::BRIEF::bitset>& descriptors) const = 0; // IZI
 };
 
 /// This functor extracts BRIEF descriptors in the required format
@@ -248,8 +249,8 @@ class LoopDetector {
   PoseEstimationHelperBuffers pose_estimation_helper_buffers_;
   
   std::mutex detector_mutex_;
-  unique_ptr<TDetector> detector_=nullptr;
-  unique_ptr<TExtractor> extractor_=nullptr;
+  unique_ptr<TDetector> detector_;
+  unique_ptr<TExtractor> extractor_;
   
   // Parallel loop detection.
   std::atomic<bool> quit_requested_;

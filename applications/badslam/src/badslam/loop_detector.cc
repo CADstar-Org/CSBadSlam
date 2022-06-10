@@ -176,9 +176,10 @@ LoopDetector:: LoopDetector(
   
   // Optionally allocate memory for the expected number of images
   detector_->allocate(2500);
-  #if 0 //IZI 
-  extractor_.reset(new TExtractor(pattern_path));
-  #endif
+
+   //IZI 
+  extractor_.reset(new BriefExtractor(pattern_path));
+ 
   if (parallel_loop_detection) {
     // Start a separate thread for loop detection.
     quit_requested_ = false;
@@ -741,18 +742,12 @@ bool LoopDetector::DetectLoop(
   vector<DVision::BRIEF::bitset> bdescriptors;
 
   // Extract features
-
-  //typedef DVision::BRIEF::bitset TDescriptor;
-  //std::vector<DVision::BRIEF::bitset,std::allocator<DVision::BRIEF::bitset>> &
   if(extractor_)
   {
 	(*extractor_)(image, *keys, bdescriptors);	  
-  // IZI	
-    for( int i=0; i<bdescriptors.size();i++)
-	{
-		DVision::BRIEF::bitset& b=bdescriptors[i];
-		FBrief::TDescriptor t(b.to_ulong());
-		descriptors.push_back(t);
+	// IZI	
+	for (DVision::BRIEF::bitset& b: bdescriptors){
+		descriptors.push_back(b.to_ulong());
 	}
   }
 

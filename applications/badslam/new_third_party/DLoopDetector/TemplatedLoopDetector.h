@@ -883,7 +883,7 @@ void TemplatedLoopDetector<TDescriptor, F>::removeImage(int entry_id) {
   else
     m_database->getVocabulary()->transform(m_image_descriptors[entry_id], bowvec);
  #if 0 // IZI 
-  m_database->remove(entry_id, bowvec);
+  m_database->remove(entry_id, bowvec); // this functions is removeds
  #endif
   m_image_keys[entry_id] = vector<cv::KeyPoint>();
   m_image_descriptors[entry_id] = vector<TDescriptor>();
