@@ -47,7 +47,7 @@ set XCOPYDIR=xcopy /Y /D /Q /E /H /C /I
 set RMDIR=rmdir /Q /S 
 set PATH=%QTROOT%\Tools\QtCreator\bin\jom;%MSKITS%\bin\x64;%MSBUILDDIR%;%QTOPENSSL%;%PATH%
 
-if exist build %RMDIR% build
+rem if exist build %RMDIR% build
 if not exist build mkdir build
 
 cd build

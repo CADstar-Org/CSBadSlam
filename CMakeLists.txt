@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.6...3.14)
 project(libvis LANGUAGES C CXX)
 
-if (CMAKE_BUILD_TYPE STREQUAL "")
-	# If not specified then default to Release
-	set (CMAKE_BUILD_TYPE Release)
-endif ()
 
 # Enable C++14 globally
 set(CMAKE_CXX_STANDARD 14)

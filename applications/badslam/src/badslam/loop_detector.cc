@@ -76,6 +76,7 @@
 //     ISSN={1552-3098}
 // }
 
+#include "DBoW2/FBrief.h"
 
 #include "badslam/loop_detector.h"
 
@@ -736,13 +737,25 @@ bool LoopDetector::DetectLoop(
   // Enable to get debug output
   constexpr bool kDebug = false;
   
-  vector<TDescriptor> descriptors;
-  
+  vector<FBrief::TDescriptor> descriptors;
+  vector<DVision::BRIEF::bitset> bdescriptors;
+
   // Extract features
-  #if 0 // IZI
+
+  //typedef DVision::BRIEF::bitset TDescriptor;
   //std::vector<DVision::BRIEF::bitset,std::allocator<DVision::BRIEF::bitset>> &
-  (*extractor_)(image, *keys, descriptors);
-  #endif
+  if(extractor_)
+  {
+	(*extractor_)(image, *keys, bdescriptors);	  
+  // IZI	
+    for( int i=0; i<bdescriptors.size();i++)
+	{
+		DVision::BRIEF::bitset& b=bdescriptors[i];
+		FBrief::TDescriptor t(b.to_ulong());
+		descriptors.push_back(t);
+	}
+  }
+
   
   // Amend the extracted features with their depth.
   // HACK: Storing the depth in the "response" field of cv::KeyPoint.
