@@ -11,6 +11,7 @@ if (CMAKE_CUDA_COMPILER)
   set(WITH_REALSENSE OFF CACHE BOOL "Enable Realsense2 Support" FORCE)
   set(WITH_K4A OFF CACHE BOOL "Enable Kinect4Azure Support" FORCE)
   # Dependencies 
+  find_package(jsoncpp REQUIRED)
   find_package(SuiteSparse REQUIRED)
   find_package(DLib REQUIRED)
   find_package(DBoW2 REQUIRED)
