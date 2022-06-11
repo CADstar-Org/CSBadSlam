@@ -47,35 +47,49 @@ set XCOPYDIR=xcopy /Y /D /Q /E /H /C /I
 set RMDIR=rmdir /Q /S 
 set PATH=%QTROOT%\Tools\QtCreator\bin\jom;%MSKITS%\bin\x64;%MSBUILDDIR%;%QTOPENSSL%;%PATH%
 
-rem if exist build %RMDIR% build
+if exist build %RMDIR% build
 if not exist build mkdir build
-
 cd build
 
+
+set TOOLCHAIN="/vcpkg-export-old/scripts/buildsystems/vcpkg.cmake"
 set COMPILE_DEBUG=0
+set COMPILE_KEYW="Release"
 
 echo "%1"
 if "%1"==""     set COMPILE_DEBUG=0
 if "%1" NEQ ""  set COMPILE_DEBUG=1
 if "%1" EQU "0" set COMPILE_DEBUG=0
+if "%1" EQU "2" set COMPILE_DEBUG=2
+if "%1" EQU "3" set COMPILE_DEBUG=3
+
+if %COMPILE_DEBUG% == 0 set COMPILE_KEYW=Release
+if %COMPILE_DEBUG% == 1 set COMPILE_KEYW=Debug
+if %COMPILE_DEBUG% == 2 set COMPILE_KEYW=RelWithDebInfo
+if %COMPILE_DEBUG% == 3 set COMPILE_KEYW=MinSizeRel
+
+
 
 echo .
 echo .
-
-if %COMPILE_DEBUG% == 1 (
-	echo ================= COMPILE BADSLAM DEBUG ======================
-) else (
-	echo ================= COMPILE BADSLAM RELEASE ======================
-)
+echo ================= COMPILE BADSLAM %COMPILE_KEYW% ======================
 echo .
 echo .
 
-cmake -G "Visual Studio 16 2019" -A x64 -T cuda=11.6 -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DCMAKE_TOOLCHAIN_FILE=/vcpkg-export/scripts/buildsystems/vcpkg.cmake ..
+cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% -A x64 -T cuda=11.6 -DBADSLAM_DIR=/CSBadSlam -DBADSLAM_BUILD_DIR=/CSBadSlam/build -DCMAKE_CUDA_ARCHITECTURES="75;86"  ..
 
-if %COMPILE_DEBUG% == 1 (
-	cmake --build . --target install --config Debug
-) else (
+if %COMPILE_DEBUG% == 0 (
 	cmake --build . --target install --config Release
+) else (
+	if %COMPILE_DEBUG% == 3 (
+		cmake --build . --target install --config MinSizeRel
+	) else (
+		if %COMPILE_DEBUG% == 2 (
+			cmake --build . --target install --config RelWithDebInfo
+		) else (
+			cmake --build . --target install --config Debug
+		)
+	)
 )
 
 cd %MYPATH%
