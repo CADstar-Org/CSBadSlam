@@ -73,6 +73,9 @@ endif (OPENGV_FOUND)
 find_package(Threads REQUIRED)
 find_package(OpenGL REQUIRED)
 
+set(LIBVIS_LIB_DIR_REL  "./build/Release")
+set(LIBVIS_LIB_DIR_DBG  "./build/Debug")
+
 
 # Eigen (external)
 find_package(Eigen3 REQUIRED)
@@ -386,10 +389,10 @@ target_include_directories(libvis
     ${gtest_SOURCE_DIR}/include
     ${gtest_SOURCE_DIR}
     libvis/third_party
+	libvis/third_party/loguru
     ${GLEW_INCLUDE_DIRS}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${Qt5Core_INCLUDE_DIRS}
-    ${Qt5Opengl_INCLUDE_DIRS}
     ${Qt5Opengl_INCLUDE_DIRS}
 )
 # Using the static version of libpng hopefully ensures that we won't get a
@@ -400,7 +403,7 @@ target_include_directories(libvis
 # TODO: However, it does not seem to work together with Qt
 target_link_libraries(libvis
   PUBLIC
-    loguru
+	loguru
 	${OPENGV_LIBRARIES}
     ${Qt5Widgets_LIBRARIES}
     ${Qt5Opengl_LIBRARIES}
@@ -469,6 +472,7 @@ if (CMAKE_CUDA_COMPILER)
   set_property(TARGET libvis_cuda PROPERTY FOLDER "libvis")
   set_property(TARGET libvis_cuda PROPERTY CUDA_ARCHITECTURES 75)
   target_include_directories(libvis_cuda PUBLIC
+	./libvis/third_party/loguru
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     ${OpenCV_INCLUDE_DIRS}
   )
@@ -517,6 +521,7 @@ target_include_directories(libvis_test PRIVATE
   ${gtest_SOURCE_DIR}/include
   #${gtest_SOURCE_DIR}
   ${OpenCV_INCLUDE_DIRS}
+  	./libvis/third_party/loguru
   ${GLEW_INCLUDE_DIRS}
   ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}  # TODO: currently required because of lm_optimizer.h. That should not be necessary.
 )

@@ -47,12 +47,11 @@ set XCOPYDIR=xcopy /Y /D /Q /E /H /C /I
 set RMDIR=rmdir /Q /S 
 set PATH=%QTROOT%\Tools\QtCreator\bin\jom;%MSKITS%\bin\x64;%MSBUILDDIR%;%QTOPENSSL%;%PATH%
 
-if exist build %RMDIR% build
+rem if exist build %RMDIR% build
 if not exist build mkdir build
 cd build
 
-
-set TOOLCHAIN="/vcpkg-export-old/scripts/buildsystems/vcpkg.cmake"
+set TOOLCHAIN="/vcpkg-export/scripts/buildsystems/vcpkg.cmake"
 set COMPILE_DEBUG=0
 set COMPILE_KEYW="Release"
 
@@ -68,8 +67,6 @@ if %COMPILE_DEBUG% == 1 set COMPILE_KEYW=Debug
 if %COMPILE_DEBUG% == 2 set COMPILE_KEYW=RelWithDebInfo
 if %COMPILE_DEBUG% == 3 set COMPILE_KEYW=MinSizeRel
 
-
-
 echo .
 echo .
 echo ================= COMPILE BADSLAM %COMPILE_KEYW% ======================
@@ -81,13 +78,20 @@ cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% -A x64 -T cu
 if %COMPILE_DEBUG% == 0 (
 	cmake --build . --target install --config Release
 ) else (
-	if %COMPILE_DEBUG% == 3 (
-		cmake --build . --target install --config MinSizeRel
+	if %COMPILE_DEBUG% == 1 (
+		cmake --build . --target install --config Debug
 	) else (
 		if %COMPILE_DEBUG% == 2 (
 			cmake --build . --target install --config RelWithDebInfo
 		) else (
-			cmake --build . --target install --config Debug
+			if %COMPILE_DEBUG% == 3 (
+				cmake --build . --target install --config MinSizeRel			
+			) else (
+				cmake --build . --target install --config Debug
+				cmake --build . --target install --config Release
+				cmake --build . --target install --config RelWithDebInfo
+				cmake --build . --target install --config MinSizeRel
+			)
 		)
 	)
 )
