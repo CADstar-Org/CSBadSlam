@@ -1,30 +1,46 @@
+if(MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+endif()
+
 if (CMAKE_CUDA_COMPILER)
+  set(WITH_REALSENSE OFF CACHE BOOL "Enable Realsense2 Support")
+  set(WITH_K4A OFF CACHE BOOL "Enable Kinect4Azure Support")
+
   # Make CMake find the Find<Package>.cmake files in the cmake subdirectory.
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
   
-  set(DLib_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/DLib/lib/cmake/DLib")
-  set(opengv_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/opengv/lib/cmake/opengv-1.0")
+  #DLib dependency (automatically downloaded from github)
+  include(FetchContent)
+  FetchContent_Declare(DLib
+    GIT_REPOSITORY https://github.com/dorian3d/DLib.git
+    GIT_TAG 16ceae3e5e6bfcc67d52297f1b0ce9c0072bb0d4
+  )
+  FetchContent_MakeAvailable(DLib)
+  #Do not install the DLib target
+  if(IS_DIRECTORY "${DLib_SOURCE_DIR}")
+    set_property(DIRECTORY ${DLib_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
+  endif()
 
-  set(WITH_REALSENSE ON CACHE BOOL "Enable Realsense2 Support")
-  set(WITH_K4A ON CACHE BOOL "Enable Kinect4Azure Support")
   # Dependencies
   find_package(SuiteSparse REQUIRED)
-  find_package(DLib REQUIRED)
-  find_package(Eigen3 REQUIRED)
   find_package(g2o REQUIRED)
   find_package(OpenGL REQUIRED)
+
   # Cross-platform threading. See:
   # https://cmake.org/cmake/help/latest/module/FindThreads.html
   find_package(Threads REQUIRED)
+  find_package(GTest REQUIRED) # https://stackoverflow.com/questions/41315739/vcpkg-does-not-work-for-google-test
+  enable_testing()
 
   if (UNIX)
     find_package(X11 REQUIRED)
   endif()
+  
 
   add_subdirectory(third_party/DBoW2)
   set_target_properties(DBoW2 Dependencies PROPERTIES FOLDER "badslam/third_party/DBoW2")
-  
-  find_package(opengv REQUIRED)
+
+  find_package(opengv CONFIG REQUIRED)
   
   # Optional, only required for live RealSense camera support
   if(WITH_REALSENSE)
@@ -32,15 +48,15 @@ if (CMAKE_CUDA_COMPILER)
   endif()
   # Optional, only required for live Azure Kinect camera support
   if(WITH_K4A)
-	  if (WIN32)
-		# Use a custom find script in the cmake subdirectory since the K4A SDK does
-		# not seem to ship cmake files on Windows
-		find_package(K4A)
-	  else()
-		# On Linux, use the SDK-provided CMake files
-		find_package(k4a)
-		find_package(k4arecord)
-	  endif()
+    if (WIN32)
+    # Use a custom find script in the cmake subdirectory since the K4A SDK does
+    # not seem to ship cmake files on Windows
+    find_package(K4A)
+    else()
+      # On Linux, use the SDK-provided CMake files
+      find_package(k4a)
+      find_package(k4arecord)
+    endif()
   endif()
   # Optional, only required for live Structure Core camera support
   find_package(Structure)
@@ -48,7 +64,7 @@ if (CMAKE_CUDA_COMPILER)
   set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_STANDARD_REQUIRED ON)
   
-  # badslam_baselib (used by both the executable and the unit test).
+  # CSBadSlam (used by both the executable and the unit test).
   file(GLOB BAD_SLAM_SRC
     "src/badslam/*.h"
     "src/badslam/*.cc"
@@ -60,17 +76,19 @@ if (CMAKE_CUDA_COMPILER)
     BAD_SLAM_SRC
     "${CMAKE_CURRENT_SOURCE_DIR}/src/badslam/main.cc"
   )
-  add_library(badslam_baselib
+  add_library(CSBadSlam SHARED
     ${BAD_SLAM_SRC}
   )
-  set_property(TARGET badslam_baselib PROPERTY FOLDER "badslam")
-  set_property(TARGET badslam_baselib PROPERTY CUDA_ARCHITECTURES 75)
-  target_compile_options(badslam_baselib
+  set_target_properties(CSBadSlam PROPERTIES 
+  	FOLDER "badslam"
+    DEBUG_POSTFIX "_d"
+  )
+  target_compile_options(CSBadSlam
     PUBLIC
       ${LIBVIS_WARNING_OPTIONS}
   )
 
-    target_compile_options(badslam_baselib
+    target_compile_options(CSBadSlam
       PUBLIC
         # NOTE: The -march=native was required to be able to use opengv, otherwise
         #       it would just crash when calling an opengv function. I suspect
@@ -85,7 +103,7 @@ if (CMAKE_CUDA_COMPILER)
         # $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -rdynamic -lineinfo>
     )
   if (NOT MSVC)
-    target_compile_options(badslam_baselib
+    target_compile_options(CSBadSlam
       PUBLIC
         # NOTE: The -march=native was required to be able to use opengv, otherwise
         #       it would just crash when calling an opengv function. I suspect
@@ -97,30 +115,28 @@ if (CMAKE_CUDA_COMPILER)
         $<$<COMPILE_LANGUAGE:CXX>:-march=native>
 	)
     else()
-    target_compile_options(badslam_baselib
+    target_compile_options(CSBadSlam
       PUBLIC
         $<$<COMPILE_LANGUAGE:CXX>:/fp:fast>
 	)
   endif()
-  target_include_directories(badslam_baselib
+  target_include_directories(CSBadSlam
     PRIVATE
       src
-      third_party/DBoW2/include/
       ${SuiteSparse_INCLUDE_DIRS}
-      ${GLEW_INCLUDE_DIR}
-      ${DLib_INCLUDE_DIRS}
-    PUBLIC
       third_party
+      ${OPENGV_INCLUDE_DIR}
+	  PUBLIC
       ${OpenCV_INCLUDE_DIRS}
       ${Boost_INCLUDE_DIR}
   )
   if (CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11)
-    target_include_directories(badslam_baselib PUBLIC
+    target_include_directories(CSBadSlam PUBLIC
       third_party/cub-1.8.0
     )
   endif()
   if (realsense2_FOUND)
-    target_compile_options(badslam_baselib
+    target_compile_options(CSBadSlam
       PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-DBAD_SLAM_HAVE_REALSENSE>
     )
@@ -128,55 +144,66 @@ if (CMAKE_CUDA_COMPILER)
 
   if (WIN32)
     if (TARGET K4APrebuilt AND TARGET K4ARecordPrebuilt)
-      target_link_libraries(badslam_baselib PUBLIC
+      target_link_libraries(CSBadSlam PUBLIC
         K4APrebuilt
         K4ARecordPrebuilt
       )
-      target_compile_definitions(badslam_baselib PUBLIC HAVE_K4A)
+      target_compile_definitions(CSBadSlam PUBLIC HAVE_K4A)
     endif()
   else()
     if (TARGET k4a::k4a)
-      target_link_libraries(badslam_baselib PUBLIC
+      target_link_libraries(CSBadSlam PUBLIC
         k4a::k4a
         k4a::k4arecord
       )
-      target_compile_definitions(badslam_baselib PUBLIC HAVE_K4A)
+      target_compile_definitions(CSBadSlam PUBLIC HAVE_K4A)
     endif()
   endif()
 
   if(MSVC)
-    target_compile_definitions(badslam_baselib PUBLIC NOMINMAX) # to get rid of max define
+    target_compile_definitions(CSBadSlam PUBLIC NOMINMAX) # to get rid of max define
   endif()
   
   if (TARGET StructurePrebuilt)
-    target_link_libraries(badslam_baselib PUBLIC
+    target_link_libraries(CSBadSlam PUBLIC
       StructurePrebuilt
     )
-    target_compile_definitions(badslam_baselib PUBLIC HAVE_STRUCTURE)
+    target_compile_definitions(CSBadSlam PUBLIC HAVE_STRUCTURE)
   endif()
 
-  target_link_libraries(badslam_baselib
+  target_link_libraries(CSBadSlam
     PRIVATE
-      opengv
       g2o::core
       g2o::types_slam3d
       g2o::solver_csparse
       g2o::csparse_extension
       ${SuiteSparse_LIBRARIES}
       g2o::stuff
-      ${OpenCV_LIBS}
-      ${DLib_LIBS}
+      DLib
       DBoW2
       ${realsense2_LIBRARY}
-      ${OPENGL_LIBRARY}
-      ${GLEW_LIBRARIES}
       ${X11_LIBRARIES}
-      ${Boost_LIBRARIES}
     PUBLIC
       libvis
       libvis_cuda
+      ${OpenCV_LIBS}
+      ${OPENGV_LIBRARIES}
+      ${Boost_LIBRARIES}
+      ${OPENGL_LIBRARY}
+      GLEW::GLEW
   )
-  
+  install(TARGETS CSBadSlam EXPORT CSBadSlamTargets)
+  install(EXPORT CSBadSlamTargets
+      FILE CSBadSlamTargets.cmake
+      DESTINATION lib/cmake
+  )
+  write_basic_package_version_file(
+    "CSBadSlamConfigVersion.cmake"
+    VERSION 0.1
+    COMPATIBILITY AnyNewerVersion
+  )
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CSBadSlamConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/CSBadSlamConfigVersion.cmake" DESTINATION lib/cmake)
+  install(DIRECTORY src/ DESTINATION include/ FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.cuh")
   
   # badslam executable.
   set(BADSLAM_SRC
@@ -189,20 +216,17 @@ if (CMAKE_CUDA_COMPILER)
     ${BADSLAM_SRC}
   )
   set_property(TARGET badslam PROPERTY FOLDER "badslam")
+  set_property(TARGET badslam PROPERTY DEBUG_POSTFIX "_d")
   target_include_directories(badslam PRIVATE
     src
     third_party
-    third_party/DBoW2/include/
     ${realsense_INCLUDE_DIR}
-    ${GLEW_INCLUDE_DIR}
   )
   target_link_libraries(badslam PRIVATE
-    badslam_baselib
-    ${OpenCV_LIBS}
+    CSBadSlam
     ${X11_LIBRARIES}
-    ${Boost_LIBRARIES}
+    ${CUDA_LIBRARIES}
   )
-  
   
   # Unit test.
   add_executable(badslam_test
@@ -217,29 +241,28 @@ if (CMAKE_CUDA_COMPILER)
     src/badslam/test/test_pose_optimization_photometric_residual.cc
   )
   set_property(TARGET badslam_test PROPERTY FOLDER "badslam")
+  set_property(TARGET badslam_test PROPERTY DEBUG_POSTFIX "_d")
   target_include_directories(badslam_test PRIVATE
     src
-    ${gtest_SOURCE_DIR}/include
-    ${gtest_SOURCE_DIR}
-    ${GLEW_INCLUDE_DIRS}
+    third_party
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
   )
   target_link_libraries(badslam_test PRIVATE
-    badslam_baselib
-    gtest
+    CSBadSlam
+    GTest::GTest
     Threads::Threads
     ${X11_LIBRARIES}
+    ${CUDA_LIBRARIES}
   )
   add_test(badslam_test
     badslam_test
   )
   
-  
   # Installation.
-  set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
-  install(TARGETS badslam DESTINATION bin)
-  if(UNIX AND NOT APPLE)
-    install(FILES resources/badslam.desktop DESTINATION share/applications)  # ${XDG_APPS_INSTALL_DIR}?
-    install(FILES resources/badslam.png DESTINATION share/icons/hicolor/64x64/apps)
-  endif()
+  #set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
+  #install(TARGETS badslam DESTINATION bin)
+  #if(UNIX AND NOT APPLE)
+  #  install(FILES resources/badslam.desktop DESTINATION share/applications)  # $#{XDG_APPS_INSTALL_DIR}?
+  #  install(FILES resources/badslam.png DESTINATION share/icons/hicolor/64x64/apps)
+  #endif()
 endif()
