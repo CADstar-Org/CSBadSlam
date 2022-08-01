@@ -4,13 +4,16 @@ cd %~dp0
 set MYPATH=%CD%
 echo.
 
-rem F:/Scanner/G2/Dev/App/current/CS8 ...CSbadslam?
-rem F:/Scanner/G2/Dev/3rdparty/vcpkg/vcpkg-export/
+git checkout feat_vcpkg
+git pull
+
 rem VCPKG-EXPORT=F:\Scanner\G2\Dev\3rdparty\vcpkg\vcpkg-export-28.06.2022
 rem INSTALL_DIR= F:\Scanner\G2\Dev\App\current\install 
 rem              F:/Scanner/G2/Dev/App/current/CSBadSlam/
 
 rem set VCPKG_EXPORT=%MYPATH%\..\..\..\3rdparty\vcpkg\vcpkg-export
+set CMAKE_GENERATOR=Ninja
+
 set VCPKG_EXPORT="\vcpkg-export"
 set INSTALL_DIR=%MYPATH%\..\install
 set BADSLAM_DIR=\CSBadSlam
@@ -156,28 +159,30 @@ echo ================= COMPILE BADSLAM %COMPILE_KEYW% ======================
 echo .
 echo .
 
+set VS_SEL=-G "Visual Studio 16 2019"
 if %USE_VS2022% == 1 (
-	cmake -G "Visual Studio 17 2022" -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% -A x64 -T cuda=11.6 -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR% -DBADSLAM_DIR=%BADSLAM_DIR% -DBADSLAM_BUILD_DIR=%BADSLAM_DIR%/build -DCMAKE_CUDA_ARCHITECTURES="75;86"  ..
-) else (
-    cmake -G "Visual Studio 16 2019" -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% -A x64 -T cuda=11.6 -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR% -DBADSLAM_DIR=%BADSLAM_DIR% -DBADSLAM_BUILD_DIR=%BADSLAM_DIR%/build -DCMAKE_CUDA_ARCHITECTURES="75;86"  ..
+	set VS_SEL=-G "Visual Studio 17 2022"  
 )   
 
+rem cmake %VS_SEL% -DCMAKE_CUDA_ARCHITECTURES="61;75;86" -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% -A x64 -T cuda=11.6 -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR% -DBADSLAM_DIR=%BADSLAM_DIR% -DBADSLAM_BUILD_DIR=%BADSLAM_DIR%/build -DCMAKE_CUDA_ARCHITECTURES="75;86" -DWITH_REALSENSE=OFF ..
+cmake .. -A x64 -T cuda=11.6 %VS_SEL% -DCMAKE_CUDA_ARCHITECTURES="61;75;86" -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% -DWITH_REALSENSE=OFF -DWITH_K4A=OFF -DCMAKE_INSTALL_PREFIX=%INSTALL_DIR% -DBADSLAM_DIR=%BADSLAM_DIR% -DBADSLAM_BUILD_DIR=%BADSLAM_DIR%/build
+
 if %COMPILE_DEBUG% == 0 (
-	cmake --build . --target install --config Release
+	cmake --build . --target install --config Release -j
 ) else (
 	if %COMPILE_DEBUG% == 1 (
-		cmake --build . --target install --config Debug
+		cmake --build . --target install --config Debug -j
 	) else (
 		if %COMPILE_DEBUG% == 2 (
-			cmake --build . --target install --config RelWithDebInfo
+			cmake --build . --target install --config RelWithDebInfo -j
 		) else (
 			if %COMPILE_DEBUG% == 3 (
-				cmake --build . --target install --config MinSizeRel			
+				cmake --build . --target install --config MinSizeRel -j		
 			) else (
-				cmake --build . --target install --config Debug
-				cmake --build . --target install --config Release
-				cmake --build . --target install --config RelWithDebInfo
-				cmake --build . --target install --config MinSizeRel
+				cmake --build . --target install --config Debug -j
+				cmake --build . --target install --config Release -j
+				cmake --build . --target install --config RelWithDebInfo -j
+				cmake --build . --target install --config MinSizeRel -j
 			)
 		)
 	)

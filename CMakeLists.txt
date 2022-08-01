@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.6...3.14)
-    
+
 project(libvis LANGUAGES C CXX)
 
-set(CMAKE_DEBUG_POSTFIX "_d")
+set(CMAKE_GENERATOR_PLATFORM x64)
 
 # Enable C++14 globally
 set(CMAKE_CXX_STANDARD 14)
@@ -83,8 +83,6 @@ add_library(loguru SHARED
   libvis/third_party/loguru/loguru.cpp
 )
 set_property(TARGET loguru PROPERTY FOLDER "libvis/third_party")
-set_property(TARGET loguru PROPERTY DEBUG_POSTFIX "_d")
-
 target_include_directories(loguru PUBLIC
   libvis/third_party/loguru/
 )
@@ -105,7 +103,7 @@ target_link_libraries(loguru
   ${CMAKE_DL_LIBS}
 )
 
-find_package(GTest CONFIG REQUIRED) # https://stackoverflow.com/questions/41315739/vcpkg-does-not-work-for-google-test
+find_package(GTest REQUIRED) # https://stackoverflow.com/questions/41315739/vcpkg-does-not-work-for-google-test
 if(NOT GTest_FOUND)
   # GTest (packaged)
   add_subdirectory(libvis/third_party/gtest)
@@ -119,23 +117,9 @@ if(NOT GTest_FOUND)
 endif()
 enable_testing()
 
-find_package(PNG REQUIRED)
-if(PNG_FOUND)
-  message( "libpng_FOUND:    " ${PNG_FOUND} )
-  message( "PNG_LIBRARIES:   " ${PNG_LIBRARIES})
-  message( "PNG_LIBRARY:     " ${PNG_LIBRARY})
-  message( "PNG_INCLUDE_DIRS:" ${PNG_INCLUDE_DIRS})
-endif()
-
 find_package(tinyxml2 REQUIRED)
-message( "TinyXML2_FOUND:       " ${tinyxml2_FOUND} )
-message( "TINYXML2_FOUND:       " ${TINYXML2_FOUND} )
-if(TINYXML2_FOUND)
-  message( "TinyXML2_LIBRARIES:   " ${TINYXML2_LIBRARIES})
-  message( "TinyXML2_LIBRARY:     " ${TINYXML2_LIBRARY})
-  message( "TinyXML2_INCLUDE_DIRS:" ${TINYXML2_INCLUDE_DIRS})
-endif()
 
+find_package(PNG REQUIRED)
 if(NOT PNG_FOUND)
   # libpng (packaged)
   add_subdirectory(libvis/third_party/libpng)
@@ -226,7 +210,6 @@ add_executable(bin2c
   ./libvis/src/bin2c/main.cc
 )
 set_property(TARGET bin2c PROPERTY FOLDER "libvis")
-set_property(TARGET bin2c PROPERTY DEBUG_POSTFIX "_d")
 
 target_include_directories(bin2c PRIVATE
   ${Boost_INCLUDE_DIR}
@@ -379,7 +362,7 @@ set_property(TARGET libvis PROPERTY FOLDER "libvis")
 set_property(TARGET libvis PROPERTY DEBUG_POSTFIX "_d")
 
 target_compile_options(libvis PRIVATE
-    "${LIBVIS_WARNING_OPTIONS}"
+	"${LIBVIS_WARNING_OPTIONS}"
 )
 if (VULKAN_FOUND)
   target_compile_options(libvis PUBLIC -DLIBVIS_HAVE_VULKAN)
@@ -403,7 +386,7 @@ target_include_directories(libvis
   PUBLIC
     ${PNG_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
-    ${OpenCV_INCLUDE_DIRS}
+	${OpenCV_INCLUDE_DIRS}
     libvis/third_party/sophus
     ./libvis/src
   PRIVATE
@@ -535,10 +518,7 @@ set_property(TARGET libvis_test PROPERTY FOLDER "libvis")
 set_property(TARGET libvis_test PROPERTY DEBUG_POSTFIX "_d")
 
 target_link_libraries(libvis_test PRIVATE
-  $<$<CONFIG:Debug>:${VCPKG_ROOT}/debug/lib/gtestd.lib>
-  $<$<CONFIG:Release>:${VCPKG_ROOT}/lib/gtest.lib>
-  $<$<CONFIG:RelWithDebInfo>:${VCPKG_ROOT}/lib/gtest.lib>
-  $<$<CONFIG:MinSizeRel>:${VCPKG_ROOT}/lib/gtest.lib>
+  ${GTEST_LIBRARIES}
   Threads::Threads
   libvis
   cublas  # TODO: currently required because of lm_optimizer.h. That should not be necessary.

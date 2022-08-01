@@ -1,7 +1,7 @@
 set(CMAKE_DEBUG_POSTFIX "_d")
 
 if(MSVC)
-  add_compile_definitions(THRUST_IGNORE_CUB_VERSION_CHECK)
+#  add_compile_definitions(THRUST_IGNORE_CUB_VERSION_CHECK)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 endif()
 
@@ -9,36 +9,32 @@ if (CMAKE_CUDA_COMPILER)
   # Make CMake find the Find<Package>.cmake files in the cmake subdirectory.
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
  
+  #set(DLib_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/DLib/lib/cmake/DLib")
+  # set(opengv_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/opengv/lib/cmake/opengv-1.0")
   set(WITH_REALSENSE OFF CACHE BOOL "Enable Realsense2 Support" FORCE)
   set(WITH_K4A OFF CACHE BOOL "Enable Kinect4Azure Support" FORCE)
-
   # Dependencies 
+  include(FetchContent)
+  FetchContent_Declare(Dlib
+    GIT_REPOSITORY https://github.com/dorian3d/DLib.git
+	GIT_TAG 16ceae3e5e6bfcc67d52297f1b0ce9c0072bb0d4
+  )
+  FetchContent_MakeAvailable(Dlib)
   find_package(SuiteSparse REQUIRED)
-  find_package(DLib REQUIRED)
   find_package(DBoW2 REQUIRED)
+#  find_package(DLib REQUIRED)
+
   find_package(Eigen3 REQUIRED)
   find_package(g2o REQUIRED)
   find_package(GTest CONFIG REQUIRED)
+  if(NOT GTest_FOUND)
+    # GTest (packaged)
+  endif()
+
   find_package(OpenGL REQUIRED)
   find_package(Opengv REQUIRED)
   
   set (VCPKG_ROOT ${OPENGV_LIBRARIES_DIR}/..)
-
-  if (OPENGV_FOUND)
-    message( "OPENGV_LIBRARIES::     " ${OPENGV_LIBRARIES})
-    message( "OPENGV_INCLUDE_DIR::   " ${OPENGV_INCLUDE_DIR})
-    message( "OPENGV_LIBRARIES_DIR:: " ${OPENGV_LIBRARIES_DIR})
-  endif()
-  if (DBOW2_FOUND)
-    message( "DBOW2_LIBRARIES::      " ${DBOW2_LIBRARIES})
-    message( "DBOW2_INCLUDE_DIR::    " ${DBOW2_INCLUDE_DIR})
-    message( "DBOW2_LIBRARIES_DIR::  " ${DBOW2_LIBRARIES_DIR})
-  endif()
-  if (DLIB_FOUND)
-    message( "DLIB_LIBRARIES::       " ${DLIB_LIBRARIES})
-    message( "DLIB_INCLUDE_DIR::     " ${DLIB_INCLUDE_DIR})
-    message( "DLIB_LIBRARIES_DIR::   " ${DLIB_LIBRARIES_DIR})
-  endif()
   # Cross-platform threading. See:
   # https://cmake.org/cmake/help/latest/module/FindThreads.html
   find_package(Threads REQUIRED)
@@ -51,7 +47,7 @@ if (CMAKE_CUDA_COMPILER)
     add_subdirectory(third_party/DBoW2)
     set_target_properties(DBoW2 Dependencies PROPERTIES FOLDER "badslam/third_party/DBoW2")
   endif()
-  
+
   find_package(opengv REQUIRED)
   # Optional, only required for live RealSense camera support
   if(WITH_REALSENSE)
@@ -60,15 +56,16 @@ if (CMAKE_CUDA_COMPILER)
   # Optional, only required for live Azure Kinect camera support
   if(WITH_K4A)
     if (WIN32)
-        # Use a custom find script in the cmake subdirectory since the K4A SDK does
-        # not seem to ship cmake files on Windows
-        find_package(K4A)
-      else()
-        # On Linux, use the SDK-provided CMake files
-        find_package(k4a)
-        find_package(k4arecord)
-      endif()
+      # Use a custom find script in the cmake subdirectory since the K4A SDK does
+      # not seem to ship cmake files on Windows
+      find_package(K4A)
+    else()
+      # On Linux, use the SDK-provided CMake files
+      find_package(k4a)
+      find_package(k4arecord)
+    endif()
   endif()
+
   # Optional, only required for live Structure Core camera support
   find_package(Structure)
 
@@ -91,7 +88,8 @@ if (CMAKE_CUDA_COMPILER)
     ${BAD_SLAM_SRC}
   )
   set_property(TARGET badslam_baselib PROPERTY FOLDER "badslam")
-  set_property(TARGET badslam_baselib PROPERTY DEBUG_POSTFIX "_d")
+#  set_property(TARGET badslam_baselib PROPERTY DEBUG_POSTFIX "_d")
+
   set_property(TARGET badslam_baselib PROPERTY CUDA_ARCHITECTURES 75)
   target_compile_options(badslam_baselib
     PUBLIC
@@ -123,21 +121,22 @@ if (CMAKE_CUDA_COMPILER)
         # NOTE: g2o also needs to be built with the same setting (it defaults
         #       to not use -march=native at the moment).
         $<$<COMPILE_LANGUAGE:CXX>:-march=native>
-    )
-  else()
+	)
+    else()
     target_compile_options(badslam_baselib
       PUBLIC
         $<$<COMPILE_LANGUAGE:CXX>:/fp:fast>
-    )
+	)
   endif()
   target_include_directories(badslam_baselib
     PRIVATE
       src
       ${DBOW2INCLUDE_DIR}
+#     third_party/DLib/include/
       ${OPENGV_INCLUDE_DIRS}
       ${SuiteSparse_INCLUDE_DIRS}
       ${GLEW_INCLUDE_DIR}
-      ${DLIB_INCLUDE_DIRS}
+#      ${DLib_INCLUDE_DIRS}
     PUBLIC
       ${OpenCV_INCLUDE_DIRS}
       ${Boost_INCLUDE_DIR}
@@ -146,7 +145,7 @@ if (CMAKE_CUDA_COMPILER)
   if (CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11)
     target_include_directories(badslam_baselib PUBLIC
       third_party/cub-1.8.0
-  )
+    )
   endif()
   if (realsense2_FOUND)
     target_compile_options(badslam_baselib
@@ -191,10 +190,12 @@ if (CMAKE_CUDA_COMPILER)
       g2o::solver_csparse
       g2o::csparse_extension
       g2o::stuff 
-      ${DBOW2_LIBRARIES}
-      ${DLIB_LIBRARIES}
-      ${SuiteSparse_LIBRARIES}
+	  ${DBOW2_LIBRARIES}
+ 	#  ${DLIB_LIBRARIES}
+	  ${SuiteSparse_LIBRARIES}
+      DLib
       ${OpenCV_LIBS}
+#      ${DLib_LIBS}
       ${realsense2_LIBRARY}
       ${OPENGV_LIBRARIES}
       ${OPENGL_LIBRARY}
@@ -218,14 +219,15 @@ if (CMAKE_CUDA_COMPILER)
     ${BADSLAM_SRC}
   )
   set_property(TARGET badslam PROPERTY FOLDER "badslam")
-  set_property(TARGET badslam PROPERTY DEBUG_POSTFIX "_d")
+# set_property(TARGET badslam PROPERTY DEBUG_POSTFIX "_d")
 
   target_include_directories(badslam PRIVATE
     src
+#   third_party/DBoW2/include/
     ${DBOW2_INCLUDE_DIR}
-    ${DLIB_INCLUDE_DIR}
     ${realsense_INCLUDE_DIR}
     ${GLEW_INCLUDE_DIR}
+ #   third_party/DLib/include/
     third_party
   )
   target_link_libraries(badslam PRIVATE
@@ -234,7 +236,6 @@ if (CMAKE_CUDA_COMPILER)
     ${X11_LIBRARIES}
     ${Boost_LIBRARIES}
   )
-  
   
   # Unit test.
   add_executable(badslam_test
@@ -249,8 +250,8 @@ if (CMAKE_CUDA_COMPILER)
     src/badslam/test/test_pose_optimization_photometric_residual.cc
   )
   set_property(TARGET badslam_test PROPERTY FOLDER "badslam")
-  set_property(TARGET badslam_test PROPERTY DEBUG_POSTFIX "_d")
-
+# set_property(TARGET badslam_test PROPERTY DEBUG_POSTFIX "_d")
+	
   target_include_directories(badslam_test PRIVATE
     src
     ${GLEW_INCLUDE_DIRS}
@@ -260,18 +261,15 @@ if (CMAKE_CUDA_COMPILER)
   target_link_libraries(badslam_test PRIVATE
     badslam_baselib
 
-    $<$<CONFIG:Debug>:${VCPKG_ROOT}/debug/lib/gtestd.lib>
-    $<$<CONFIG:Release>:${VCPKG_ROOT}/lib/gtest.lib>
-    $<$<CONFIG:RelWithDebInfo>:${VCPKG_ROOT}/lib/gtest.lib>
-    $<$<CONFIG:MinSizeRel>:${VCPKG_ROOT}/lib/gtest.lib>
+    $<$<CONFIG:Debug>:${VCPKG_ROOT}/debug/lib/gtest.lib>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>,$<CONFIG:RelWithDebInfo>>:${VCPKG_ROOT}/lib/gtest.lib>
 
-    $<$<CONFIG:Debug>:${VCPKG_ROOT}/debug/lib/manual-link/gtest_maind.lib>
-    $<$<CONFIG:Release>:${VCPKG_ROOT}/lib/manual-link/gtest_main.lib>
-    $<$<CONFIG:RelWithDebInfo>:${VCPKG_ROOT}/lib/manual-link/gtest_main.lib>
-    $<$<CONFIG:MinSizeRel>:${VCPKG_ROOT}/lib/manual-link/gtest_main.lib>
+    $<$<CONFIG:Debug>:${VCPKG_ROOT}/debug/lib/manual-link/gtest_main.lib>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>,$<CONFIG:RelWithDebInfo>>:${VCPKG_ROOT}/lib/manual-link/gtest_main.lib>
 
     Threads::Threads
-    ${DBOW2_LIBRARIES}
+    DLib
+	${DBOW2_LIBRARIES}
     ${X11_LIBRARIES}
   )
   add_test(badslam_test
