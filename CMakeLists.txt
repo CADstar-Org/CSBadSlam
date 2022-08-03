@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 3.6...3.14)
-project(libvis LANGUAGES C CXX)
-
+cmake_minimum_required(VERSION 3.19)
+project(CSBadSlam LANGUAGES C CXX)
 
 # Enable C++14 globally
 set(CMAKE_CXX_STANDARD 14)
@@ -15,7 +14,7 @@ if(MSVC)
   # and also https://stackoverflow.com/questions/37128555/getting-cmake-to-build-shared-library-for-msvc
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS YES CACHE BOOL "Export all symbols in Visual Studio")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /bigobj")
   #set(CMake_MSVC_PARALLEL)
   #message ("Enabling parallel builds in visual studio")
 endif()
@@ -31,14 +30,11 @@ include(CheckLanguage)
 
 # CUDA (external)
 # NOTE: The user of this CMake file should set the CUDA arch when invoking
-#       CMake, for example with: -DCMAKE_CUDA_FLAGS="-arch=sm_61"
-#       Common settings are either the 'native' arch for which the binary will
-#       be known to run on exclusively, or a broader set of PTX architectures
-#       in case the binary is intended for distribution.
+#       CMake, for example with: -DCMAKE_CUDA_ARCHITECTURES="61;75;86"
 check_language(CUDA)
 if (CMAKE_CUDA_COMPILER)
+  set(CMAKE_CUDA_ARCHITECTURES 61 75 86 CACHE STRING "Cuda Architectures to build for")
   enable_language(CUDA)
-  
   # Enable C++14 globally for CUDA code
   if(NOT DEFINED CMAKE_CUDA_STANDARD)
     set(CMAKE_CUDA_STANDARD 14)
@@ -65,11 +61,10 @@ endif()
 # Cross-platform threading. See:
 # https://cmake.org/cmake/help/latest/module/FindThreads.html
 find_package(Threads REQUIRED)
-
 find_package(OpenGL REQUIRED)
 
 # Eigen (external)
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 CONFIG REQUIRED)
 
 # Boost (external)
 if (POLICY CMP0074) # get rid of annoying warning
@@ -80,10 +75,12 @@ find_package(Boost COMPONENTS serialization filesystem system REQUIRED)
 # Loguru (packaged)
 add_library(loguru SHARED
   libvis/third_party/loguru/loguru.cpp
+  libvis/third_party/loguru/loguru.hpp
 )
-set_property(TARGET loguru PROPERTY FOLDER "libvis/third_party")
+set_target_properties(loguru PROPERTIES FOLDER "libvis/third_party" DEBUG_POSTFIX "_d")
 target_include_directories(loguru PUBLIC
-  libvis/third_party/loguru/
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libvis/third_party/loguru/>
+  $<INSTALL_INTERFACE:include/loguru>
 )
 set_target_properties(loguru PROPERTIES
   POSITION_INDEPENDENT_CODE ON
@@ -102,33 +99,33 @@ target_link_libraries(loguru
   Threads::Threads
   ${CMAKE_DL_LIBS}
 )
+include(CMakePackageConfigHelpers)
+install(TARGETS loguru EXPORT loguruTargets)
+install(EXPORT loguruTargets
+		FILE loguruTargets.cmake
+		DESTINATION lib/cmake/loguru
+)
+write_basic_package_version_file(
+  "loguruConfigVersion.cmake"
+  VERSION 0.1
+  COMPATIBILITY AnyNewerVersion
+)
+install(FILES "libvis/third_party/loguru/loguruConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/loguruConfigVersion.cmake" DESTINATION lib/cmake/loguru)
+install(DIRECTORY libvis/third_party/loguru/ DESTINATION include/loguru/ FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 
-# GTest (packaged)
-add_subdirectory(libvis/third_party/gtest)
-set_target_properties(gtest gtest_main PROPERTIES FOLDER "libvis/third_party")
-
-if(MSVC)
-  if (MSVC_VERSION GREATER_EQUAL 1900)
-    target_compile_definitions(gtest PUBLIC _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
-    target_compile_definitions(gtest_main PUBLIC _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
-  endif()
-endif()
+find_package(GTest REQUIRED) # https://stackoverflow.com/questions/41315739/vcpkg-does-not-work-for-google-test
 enable_testing()
 
-# libpng (packaged)
-add_subdirectory(libvis/third_party/libpng)
-set_target_properties(png png_static genfiles PROPERTIES FOLDER "libvis/third_party/png")
-
-# GLEW (external, required)
+find_package(libpng REQUIRED)
 find_package(GLEW REQUIRED)
 
-# Vulkan (external, optional)
-set(VULKAN_PATH "" CACHE PATH "Set this to the path of the Vulkan SDK installation (the directory containing include and lib) if installed locally, otherwise leave this empty.")
-if(NOT (VULKAN_PATH STREQUAL ""))
-  set(VULKAN_FOUND TRUE)
-else()
-  set(VULKAN_FOUND FALSE)
-endif()
+# Vulkan (external, optional) -- we will always set it to false to make things easier
+#set(VULKAN_PATH "" CACHE PATH "Set this to the path of the Vulkan SDK installation (the directory containing include and lib) if installed locally, otherwise leave this empty.")
+#if(NOT (VULKAN_PATH STREQUAL ""))
+#  set(VULKAN_FOUND TRUE)
+#else()
+set(VULKAN_FOUND FALSE)
+#endif()
 
 # Qt5 (external, required)
 # TODO: Qt should be an optional dependency but is required currently.
@@ -346,8 +343,10 @@ endif()
 add_library(libvis SHARED
   ${LIBVIS_FILES}
 )
-set_property(TARGET libvis PROPERTY FOLDER "libvis")
-
+set_target_properties(libvis PROPERTIES 
+  FOLDER "libvis"
+  DEBUG_POSTFIX "_d"
+)
 target_compile_options(libvis PRIVATE
   "${LIBVIS_WARNING_OPTIONS}"
 )
@@ -371,16 +370,12 @@ endif()
 
 target_include_directories(libvis
   PUBLIC
-    ${EIGEN3_INCLUDE_DIR}
-	${OpenCV_INCLUDE_DIRS}
-    libvis/third_party/sophus
-    ./libvis/src
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libvis/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libvis/third_party/sophus>
+    $<INSTALL_INTERFACE:include>
   PRIVATE
     ${Boost_INCLUDE_DIR}
-    ${gtest_SOURCE_DIR}/include
-    ${gtest_SOURCE_DIR}
     libvis/third_party
-    ${GLEW_INCLUDE_DIRS}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${Qt5Core_INCLUDE_DIRS}
     ${Qt5Opengl_INCLUDE_DIRS}
@@ -394,17 +389,18 @@ target_include_directories(libvis
 # TODO: However, it does not seem to work together with Qt
 target_link_libraries(libvis
   PUBLIC
+    Eigen3::Eigen
     loguru
     ${Qt5Widgets_LIBRARIES}
     ${Qt5Opengl_LIBRARIES}
     ${Qt5Core_LIBRARIES}
+    ${OpenCV_LIBS}
   PRIVATE
+    GLEW::GLEW
     ${Boost_LIBRARIES}
-    ${GLEW_LIBRARIES}
     ${OPENGL_LIBRARY}
     ${Qt5X11Extras_LIBRARIES}
-    png  #_static
-    #z
+    png
     Threads::Threads
 )
 if(VULKAN_FOUND)
@@ -413,6 +409,19 @@ if(VULKAN_FOUND)
   )
 endif()
 
+install(TARGETS libvis EXPORT libvisTargets)
+install(EXPORT libvisTargets
+		FILE libvisTargets.cmake
+		DESTINATION lib/cmake/libvis
+)
+write_basic_package_version_file(
+  "libvisConfigVersion.cmake"
+  VERSION 0.1
+  COMPATIBILITY AnyNewerVersion
+)
+install(FILES "libvis/cmake/libvisConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/libvisConfigVersion.cmake" DESTINATION lib/cmake/libvis)
+install(DIRECTORY libvis/src/libvis/ DESTINATION include/libvis/ FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
+install(DIRECTORY libvis/third_party/sophus/sophus/ DESTINATION include/sophus/ FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 
 # libvis optional library: libvis_external_io.
 # Contains I/O functions for less common external formats such as MeshLab
@@ -422,10 +431,11 @@ add_library(libvis_external_io SHARED
   libvis/src/libvis/external_io/colmap_model.h
   libvis/src/libvis/external_io/meshlab_project.cc
   libvis/src/libvis/external_io/meshlab_project.h
-  
+
   libvis/third_party/tinyxml2/tinyxml2.cpp
 )
 set_property(TARGET libvis_external_io PROPERTY FOLDER "libvis")
+set_property(TARGET libvis_external_io PROPERTY DEBUG_POSTFIX "_d")
 target_compile_options(libvis_external_io PRIVATE
   "${LIBVIS_WARNING_OPTIONS}"
 )
@@ -459,8 +469,10 @@ if (CMAKE_CUDA_COMPILER)
     libvis/src/libvis/cuda/pixel_corner_projector.cuh
     libvis/src/libvis/cuda/pixel_corner_projector.h
   )
-  set_property(TARGET libvis_cuda PROPERTY FOLDER "libvis")
-  set_property(TARGET libvis_cuda PROPERTY CUDA_ARCHITECTURES 75)
+  set_target_properties(libvis_cuda PROPERTIES 
+    FOLDER "libvis"
+    DEBUG_POSTFIX "_d"
+  )
   target_include_directories(libvis_cuda PUBLIC
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     ${OpenCV_INCLUDE_DIRS}
@@ -475,6 +487,19 @@ if (CMAKE_CUDA_COMPILER)
     $<$<COMPILE_LANGUAGE:CUDA>:-use_fast_math>
     $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>
   )
+  install(TARGETS libvis_cuda EXPORT libvis_cudaTargets)
+  install(EXPORT libvis_cudaTargets
+      FILE libvis_cudaTargets.cmake
+      DESTINATION lib/cmake/libvis
+  )
+  write_basic_package_version_file(
+    "libvis_cudaConfigVersion.cmake"
+    VERSION 0.1
+    COMPATIBILITY AnyNewerVersion
+  )
+  install(FILES "libvis/cmake/libvis_cudaConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/libvisConfigVersion.cmake" DESTINATION lib/cmake/libvis)
+  install(DIRECTORY libvis/src/libvis/cuda/ DESTINATION include/libvis/cuda/ FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh")
+
 endif()
 
 
@@ -499,19 +524,20 @@ add_executable(libvis_test
   libvis/src/libvis/test/util.cc
 )
 set_property(TARGET libvis_test PROPERTY FOLDER "libvis")
+set_property(TARGET libvis_test PROPERTY DEBUG_POSTFIX "_d")
 target_link_libraries(libvis_test PRIVATE
-  gtest
+  GTest::GTest
   Threads::Threads
   libvis
   cublas  # TODO: currently required because of lm_optimizer.h. That should not be necessary.
 )
 target_include_directories(libvis_test PRIVATE
-  ${gtest_SOURCE_DIR}/include
-  #${gtest_SOURCE_DIR}
   ${OpenCV_INCLUDE_DIRS}
-  ${GLEW_INCLUDE_DIRS}
   ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}  # TODO: currently required because of lm_optimizer.h. That should not be necessary.
 )
+if(MSVC)
+  target_compile_options(libvis_test PRIVATE "/bigobj")
+endif()
 add_test(libvis_test
   libvis_test
 )

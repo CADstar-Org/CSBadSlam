@@ -30,7 +30,7 @@
 #include "libvis/image_io_libpng.h"
 
 #include "libvis/logging.h"
-#include <libpng/png.h> // TODO: Using the "libpng/" prefix is required on my Ubuntu 14.04 system to get a recent version of libpng. Remove this once not required anymore, since it might prevent finding the header at all!
+#include <png.h>
 
 #include "libvis/image.h"
 
