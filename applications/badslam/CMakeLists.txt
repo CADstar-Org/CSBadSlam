@@ -126,9 +126,6 @@ if (CMAKE_CUDA_COMPILER)
       ${SuiteSparse_INCLUDE_DIRS}
       third_party
       ${OPENGV_INCLUDE_DIR}
-	  PUBLIC
-      ${OpenCV_INCLUDE_DIRS}
-      ${Boost_INCLUDE_DIR}
   )
   if (CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11)
     target_include_directories(CSBadSlam PUBLIC
@@ -183,13 +180,14 @@ if (CMAKE_CUDA_COMPILER)
       DBoW2
       ${realsense2_LIBRARY}
       ${X11_LIBRARIES}
+      ${OPENGV_LIBRARIES}
+      ${OPENGL_LIBRARY}
     PUBLIC
       libvis
       libvis_cuda
       ${OpenCV_LIBS}
-      ${OPENGV_LIBRARIES}
-      ${Boost_LIBRARIES}
-      ${OPENGL_LIBRARY}
+      Boost::boost
+      Boost::filesystem
       GLEW::GLEW
   )
   install(TARGETS CSBadSlam EXPORT CSBadSlamTargets)
