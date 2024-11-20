@@ -16,9 +16,12 @@ if (CMAKE_CUDA_COMPILER)
     GIT_TAG 16ceae3e5e6bfcc67d52297f1b0ce9c0072bb0d4
   )
   FetchContent_MakeAvailable(DLib)
+ 
+  set(DLib_LIBS DLib)
   #Do not install the DLib target
   if(IS_DIRECTORY "${DLib_SOURCE_DIR}")
     set_property(DIRECTORY ${DLib_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
+    target_include_directories(DLib PUBLIC ${DLib_SOURCE_DIR}/include)
   endif()
 
   # Dependencies
@@ -125,7 +128,6 @@ if (CMAKE_CUDA_COMPILER)
       src
       ${SuiteSparse_INCLUDE_DIRS}
       third_party
-      ${OPENGV_INCLUDE_DIR}
   )
   if (CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11)
     target_include_directories(CSBadSlam PUBLIC
@@ -180,7 +182,7 @@ if (CMAKE_CUDA_COMPILER)
       DBoW2
       ${realsense2_LIBRARY}
       ${X11_LIBRARIES}
-      ${OPENGV_LIBRARIES}
+      opengv
       ${OPENGL_LIBRARY}
     PUBLIC
       libvis

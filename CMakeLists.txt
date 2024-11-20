@@ -24,7 +24,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 include(CheckLanguage)
 
-
 ################################################################################
 # Dependencies.
 
@@ -33,7 +32,7 @@ include(CheckLanguage)
 #       CMake, for example with: -DCMAKE_CUDA_ARCHITECTURES="61;75;86"
 check_language(CUDA)
 if (CMAKE_CUDA_COMPILER)
-  set(CMAKE_CUDA_ARCHITECTURES 61 75 86 CACHE STRING "Cuda Architectures to build for")
+  set(CMAKE_CUDA_ARCHITECTURES "all-major" CACHE STRING "Cuda Architectures to build for")
   enable_language(CUDA)
   # Enable C++14 globally for CUDA code
   if(NOT DEFINED CMAKE_CUDA_STANDARD)
@@ -127,7 +126,7 @@ find_package(GLEW REQUIRED)
 set(VULKAN_FOUND FALSE)
 #endif()
 
-# Qt5 (external, required)
+# Qt (external, required)
 # TODO: Qt should be an optional dependency but is required currently.
 # Find includes in corresponding build directories.
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -138,17 +137,18 @@ set(CMAKE_AUTOMOC ON)
 # Instruct CMake to run rcc (resource compiler) automatically when needed.
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt5 5.8 REQUIRED COMPONENTS Core OpenGL Widgets)
+find_package(QT NAMES Qt5 Qt6 REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} 5.8 REQUIRED COMPONENTS Core OpenGL Widgets)
 
-if (UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE AND (${QT_VERSION_MAJOR} EQUAL 5))
   find_package(Qt5X11Extras REQUIRED)
 endif()
-if (TARGET Qt5::Core AND UNIX)
+if (TARGET Qt${QT_VERSION_MAJOR}::Core AND UNIX)
   # HACK, see: https://gitlab.kitware.com/cmake/cmake/issues/16915
-  get_property( core_options TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_OPTIONS )
+  get_property( core_options TARGET Qt${QT_VERSION_MAJOR}::Core PROPERTY INTERFACE_COMPILE_OPTIONS )
   string( REPLACE "-fPIC" "" new_core_options "${core_options}" )
-  set_property( TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_OPTIONS ${new_core_options} )
-  set_property( TARGET Qt5::Core PROPERTY INTERFACE_POSITION_INDEPENDENT_CODE "ON" )
+  set_property( TARGET Qt${QT_VERSION_MAJOR}::Core PROPERTY INTERFACE_COMPILE_OPTIONS ${new_core_options} )
+  set_property( TARGET Qt${QT_VERSION_MAJOR}::Core PROPERTY INTERFACE_POSITION_INDEPENDENT_CODE "ON" )
   set( CMAKE_CXX_COMPILE_OPTIONS_PIE "-fPIC" )
 endif()
 
@@ -356,7 +356,7 @@ if (VULKAN_FOUND)
   target_link_directories(libvis PRIVATE "${VULKAN_PATH}/lib")
 endif()
 
-if(Qt5Widgets_FOUND)
+if(Qt${QT_VERSION_MAJOR}Widgets_FOUND)
   target_compile_options(libvis PUBLIC -DLIBVIS_HAVE_QT)
 endif()
 
@@ -377,9 +377,6 @@ target_include_directories(libvis
     ${Boost_INCLUDE_DIR}
     libvis/third_party
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${Qt5Core_INCLUDE_DIRS}
-    ${Qt5Opengl_INCLUDE_DIRS}
-    ${Qt5Opengl_INCLUDE_DIRS}
 )
 # Using the static version of libpng hopefully ensures that we won't get a
 # totally outdated version at runtime, resulting in an error like:
@@ -391,15 +388,15 @@ target_link_libraries(libvis
   PUBLIC
     Eigen3::Eigen
     loguru
-    ${Qt5Widgets_LIBRARIES}
-    ${Qt5Opengl_LIBRARIES}
-    ${Qt5Core_LIBRARIES}
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::OpenGL
+	Qt${QT_VERSION_MAJOR}::Widgets
     ${OpenCV_LIBS}
   PRIVATE
     GLEW::GLEW
     ${Boost_LIBRARIES}
     ${OPENGL_LIBRARY}
-    ${Qt5X11Extras_LIBRARIES}
+	$<TARGET_NAME_IF_EXISTS:Qt${QT_VERSION_MAJOR}::X11Extras>
     png
     Threads::Threads
 )
@@ -419,7 +416,15 @@ write_basic_package_version_file(
   VERSION 0.1
   COMPATIBILITY AnyNewerVersion
 )
-install(FILES "libvis/cmake/libvisConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/libvisConfigVersion.cmake" DESTINATION lib/cmake/libvis)
+
+configure_package_config_file(libvis/cmake/libvisConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/libvisConfig.cmake"
+  INSTALL_DESTINATION "lib/cmake/libvis"
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+  )
+ 
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libvisConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/libvisConfigVersion.cmake" DESTINATION lib/cmake/libvis)
 install(DIRECTORY libvis/src/libvis/ DESTINATION include/libvis/ FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 install(DIRECTORY libvis/third_party/sophus/sophus/ DESTINATION include/sophus/ FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 
@@ -529,7 +534,6 @@ target_link_libraries(libvis_test PRIVATE
   GTest::GTest
   Threads::Threads
   libvis
-  cublas  # TODO: currently required because of lm_optimizer.h. That should not be necessary.
 )
 target_include_directories(libvis_test PRIVATE
   ${OpenCV_INCLUDE_DIRS}
