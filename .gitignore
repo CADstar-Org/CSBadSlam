@@ -4,3 +4,5 @@ CMakeLists.txt.user
 build*/
 .ipynb_checkpoints
 *.pyc
+*package/
+.vs/
