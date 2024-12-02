@@ -53,6 +53,7 @@ if (CMAKE_CUDA_COMPILER)
   else()
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}")
   endif()
+  find_package(CUDAToolkit REQUIRED)
 else()
   message(FATAL_ERROR "CMake did not find CUDA, which is required to build this program.")
 endif()
@@ -115,7 +116,7 @@ install(DIRECTORY libvis/third_party/loguru/ DESTINATION include/loguru/ FILES_M
 find_package(GTest REQUIRED) # https://stackoverflow.com/questions/41315739/vcpkg-does-not-work-for-google-test
 enable_testing()
 
-find_package(libpng REQUIRED)
+find_package(PNG REQUIRED)
 find_package(GLEW REQUIRED)
 
 # Vulkan (external, optional) -- we will always set it to false to make things easier
@@ -391,13 +392,16 @@ target_link_libraries(libvis
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::OpenGL
 	Qt${QT_VERSION_MAJOR}::Widgets
-    ${OpenCV_LIBS}
+    opencv_core
+    opencv_imgproc
+    CUDA::cublas
+    CUDA::cudart_static
   PRIVATE
     GLEW::GLEW
     ${Boost_LIBRARIES}
     ${OPENGL_LIBRARY}
 	$<TARGET_NAME_IF_EXISTS:Qt${QT_VERSION_MAJOR}::X11Extras>
-    png
+    PNG::PNG
     Threads::Threads
 )
 if(VULKAN_FOUND)
@@ -486,7 +490,6 @@ if (CMAKE_CUDA_COMPILER)
   )
   target_link_libraries(libvis_cuda PUBLIC
     libvis
-    ${OpenCV_LIBS}
   )
   target_compile_options(libvis_cuda PRIVATE
     $<$<COMPILE_LANGUAGE:CUDA>:-use_fast_math>
@@ -536,7 +539,6 @@ target_link_libraries(libvis_test PRIVATE
   libvis
 )
 target_include_directories(libvis_test PRIVATE
-  ${OpenCV_INCLUDE_DIRS}
   ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}  # TODO: currently required because of lm_optimizer.h. That should not be necessary.
 )
 if(MSVC)

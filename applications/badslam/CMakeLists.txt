@@ -187,7 +187,7 @@ if (CMAKE_CUDA_COMPILER)
     PUBLIC
       libvis
       libvis_cuda
-      ${OpenCV_LIBS}
+      opencv_core
       Boost::boost
       Boost::filesystem
       GLEW::GLEW

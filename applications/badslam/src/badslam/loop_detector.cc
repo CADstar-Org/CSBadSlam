@@ -79,10 +79,10 @@
 
 #include "badslam/loop_detector.h"
 
-#include <point_cloud/methods.hpp>
-#include <point_cloud/PointCloudAdapter.hpp>
-#include <sac/Ransac.hpp>
-#include <sac_problems/point_cloud/PointCloudSacProblem.hpp>
+#include <opengv/point_cloud/methods.hpp>
+#include <opengv/point_cloud/PointCloudAdapter.hpp>
+#include <opengv/sac/Ransac.hpp>
+#include <opengv/sac_problems/point_cloud/PointCloudSacProblem.hpp>
 
 #include "badslam/cuda_image_processing.cuh"
 #include "badslam/pairwise_frame_tracking.h"
