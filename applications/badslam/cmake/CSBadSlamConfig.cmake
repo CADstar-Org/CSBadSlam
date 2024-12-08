@@ -11,6 +11,6 @@ find_dependency(GLEW REQUIRED)
 find_dependency(g2o REQUIRED)
 find_dependency(SuiteSparse REQUIRED)
 
-include(${CMAKE_CURRENT_LIST_DIR}/DBoW2/DBoW2Config.cmake)
+find_dependency(DBoW2 REQUIRED)
 
 include(${CMAKE_CURRENT_LIST_DIR}/CSBadSlamTargets.cmake)

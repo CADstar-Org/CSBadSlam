@@ -195,14 +195,14 @@ if (CMAKE_CUDA_COMPILER)
   install(TARGETS CSBadSlam EXPORT CSBadSlamTargets)
   install(EXPORT CSBadSlamTargets
       FILE CSBadSlamTargets.cmake
-      DESTINATION lib/cmake
+      DESTINATION lib/cmake/CSBadSlam
   )
   write_basic_package_version_file(
     "CSBadSlamConfigVersion.cmake"
     VERSION 0.1
     COMPATIBILITY AnyNewerVersion
   )
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CSBadSlamConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/CSBadSlamConfigVersion.cmake" DESTINATION lib/cmake)
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CSBadSlamConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/CSBadSlamConfigVersion.cmake" DESTINATION lib/cmake/CSBadSlam)
   install(DIRECTORY src/ DESTINATION include/ FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.cuh")
   
   # badslam executable.

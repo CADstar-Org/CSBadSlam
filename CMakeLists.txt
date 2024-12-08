@@ -498,14 +498,14 @@ if (CMAKE_CUDA_COMPILER)
   install(TARGETS libvis_cuda EXPORT libvis_cudaTargets)
   install(EXPORT libvis_cudaTargets
       FILE libvis_cudaTargets.cmake
-      DESTINATION lib/cmake/libvis
+      DESTINATION lib/cmake/libvis_cuda
   )
   write_basic_package_version_file(
     "libvis_cudaConfigVersion.cmake"
     VERSION 0.1
     COMPATIBILITY AnyNewerVersion
   )
-  install(FILES "libvis/cmake/libvis_cudaConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/libvisConfigVersion.cmake" DESTINATION lib/cmake/libvis)
+  install(FILES "libvis/cmake/libvis_cudaConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/libvisConfigVersion.cmake" DESTINATION lib/cmake/libvis_cuda)
   install(DIRECTORY libvis/src/libvis/cuda/ DESTINATION include/libvis/cuda/ FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh")
 
 endif()
